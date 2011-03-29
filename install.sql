@@ -18,7 +18,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 --
 -- Database: `bugtrack`
 --
-DROP DATABASE `bugtrack`;
+-- DROP DATABASE `bugtrack`;
 CREATE DATABASE `bugtrack` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE `bugtrack`;
 
@@ -117,4 +117,5 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 
 -- update v0.1.2
+ALTER TABLE  `log` ADD  `message` VARCHAR( 200 ) NOT NULL AFTER  `update_type`
 ALTER TABLE  `log` ADD  `created_time` INT NOT NULL
