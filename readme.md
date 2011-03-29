@@ -15,10 +15,8 @@ PHP 5.3
 
 MySQL                    |
 -------------------------|------
-protocol_version : 10 |
-version:  5.1.41 |
-version_compile_machine: ia32 |
-version_compile_os: Win32 |
+| protocol_version : 10 
+| version:  5.1.41 
 
 
 Chrome: 10
