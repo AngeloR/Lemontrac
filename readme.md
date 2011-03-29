@@ -15,10 +15,10 @@ PHP 5.3
 
 MySQL                    |
 -------------------------|------
-protocol_version         | 10
-version                  |5.1.41
-version_compile_machine  | ia32
-version_compile_os       | Win32
+protocol_version : 10
+version:  5.1.41
+version_compile_machine: ia32
+version_compile_os: Win32
 
 
 Chrome: 10
@@ -38,9 +38,3 @@ Installing Lemontrac is fairly straight-forward. However, there is no
 
    Since there is currently no ACL, but it IS something that is planned, users
    have an "access_level". 0 is the administrative user. 
-
-
-
-## Bugs? ##
-Running into bugs? Report them at http://lemontrac.xangelo.ca You need to have
-an account in order to report bugs.
