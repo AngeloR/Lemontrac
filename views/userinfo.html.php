@@ -4,8 +4,8 @@
     <div id="details">
         <h3>Profile Details</h3>
         <p>
-            <b>Member Since: </b><?php echo pretty_date($user['created_time']); ?><br>
-            <?php echo ($project['last_updated'] == null)?'':'<b>Last Activity: </b>'.pretty_date($user['updated_time']); ?>
+            <b>Member Since: </b><?php echo pretty_date($user_info['created_time']); ?><br>
+           
         </p>
         <p>
         <?php
@@ -18,11 +18,15 @@
     </div>
 
     <h2>
-        <img src="<?php echo gravatar($user['email'],100);?>" align="top"> <?php echo $user['username']; ?>
+        <img src="<?php echo gravatar($user_info['email'],100);?>" align="top"> <?php echo $user_info['username']; ?>
 
     </h2>
-    <?php echo Markdown($project['project_desc']);?>
-
+    <?php echo Markdown($user_info['bio']);?>
 
     <div class="clear"></div>
+    <ul class="history">
+        <?php foreach($log as $i=>$entry): ?>
+        <li><?php echo ucfirst($entry['message']); ?></li>
+        <?php endforeach; ?>
+    </ul>
 </div>

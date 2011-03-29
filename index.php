@@ -6,24 +6,19 @@ $config = include('appconfig.php');
 // current levels of priority
 $priority_map = array('Critical','High','Medium','Low');
 $access_levels = array('Admin','User');
-$update_types = array(
-    'Created a new bug',
-    'Updated a bug',
-    'Added a note',
-    'Created a new project',
-    'Updated a projects details'
+
+$events = array(
+    'NEW_BUG'           => 'created a bug',
+    'UPDATED_BUG'       => 'updated a bug',
+    'NEW_NOTE'       => 'added a note',
+    'NEW_PROJECT'       => 'created a project',
+    'UPDATED_PROJECT'   => 'updated a projects details',
+    'REGISTERED_USER'   => 'registered their account'
 );
 
-function ext_log($message) {
-
-}
-
 function db($sql) {
-    $q = mysql_query($sql);
+    $q = mysql_query($sql) or die(mysql_error());
 
-    if(!$q) {
-        ext_log(mysql_error());
-    }
     if(mysql_num_rows($q) > 0) {
         $tmp = array();
         while($r = mysql_fetch_assoc($q)) {
@@ -35,6 +30,44 @@ function db($sql) {
         return $q;
     }
 }
+
+function ext_log($type,$id,$time,$message = '') {
+    global $events;
+
+    $event_key = array_search($type,array_keys($events));
+    $sql = 'insert into log (user_id,update_type,message';
+    
+    switch($event_key) {
+        case 0:
+            $message = ($message == '')?$events[$type]:$message;
+            $sql = 'insert into log (user_id,update_type,message,bug_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
+            break;
+        case 1:
+            $message = ($message == '')?$events[$type]:$message;
+            $sql = 'insert into log (user_id,update_type,message,bug_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
+            break;
+        case 2:
+            $message = ($message == '')?$events[$type]:$message;
+            $sql = 'insert into log (user_id,update_type,message,bug_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
+            break;
+        case 3:
+            $message = ($message == '')?$events[$type]:$message;
+            $sql = 'insert into log (user_id,update_type,message,project_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
+            break;
+        case 4:
+            $message = ($message == '')?$events[$type]:$message;
+            $sql = 'insert into log (user_id,update_type,message,project_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
+            break;
+        default:
+            $message = ($message == '')?$events[$type]:$message;
+            $sql = 'insert into log (user_id,update_type,message,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$time.')';
+            break;
+    }
+    //die($sql);
+    db($sql);
+}
+
+
 
 function gravatar($email,$size = '80') {
     return 'http://www.gravatar.com/avatar/'.md5($email).'.jpg?s='.$size;
@@ -184,24 +217,28 @@ function login_handler() {
 }
 
 function register_handler() {
-    global $config;
+    global $config, $events;
     $username = mysql_real_escape_string($_POST['username']);
     $password = mysql_real_escape_string($_POST['password']);
     $conf_pass = mysql_real_escape_string($_POST['conf_password']);
     $email = mysql_real_escape_string($_POST['email']);
+    $time = time();
 
     if($password != $conf_pass) {
         ext_error('Sorry, the passwords that you entered do not match.');
     }
     else {
         $password = sha1('139n9'.$password.'139vnv');
-        $sql = 'insert into users (username,password,email) values("'.$username.'","'.$password.'","'.$email.'")';
+        $sql = 'insert into users (username,password,email,created_time,updated_time) values("'.$username.'","'.$password.'","'.$email.'",'.$time.','.$time.')';
         if(db($sql)) {
+
+            
 
             $sql = 'select * from users where username = "'.$username.'" and password= "'.$password.'"';
             $res = db($sql);
 
             $_SESSION[$config['session']] = serialize($res[0]);
+            ext_log('REGISTERED_USER','',$time);
             redirect('/');
         }
         else {
@@ -480,17 +517,26 @@ function close_project_handler($pjid) {
 
 function user_info($id) {
     $sql = 'select * from users where user_id = '.$id;
+    $sql2 = 'select * from log where user_id = '.$id.' order by created_time desc limit 0,15';
     $res = db($sql);
+    $res2 = db($sql2);
 
-    set('user',user());
+    print_r($res);
+
+    set('log',$res2);
+    set('user_info',$res[0]);
     return render('userinfo.html.php');
+}
+
+function user_settings() {
+    return user_info(user('user_id'));
 }
 
 $user = user();
 /**
  * Route maps
  *
- * TRICKS! the routes don't actually exist for users that don't meet the designated access level
+ * the routes don't actually exist for users that don't meet the designated access level
  */
 dispatch('/','project_list');
 
@@ -520,10 +566,11 @@ dispatch('/bug/:bugid', 'bug_info');
 dispatch_post('/bug/:bugid', 'update_bug');
 
 
-dispatch('/user/:userid','user_info'); // move to bottom of this list when all other features are completed
+
 dispatch('/user/settings','user_settings');
-dispatch('/user/edit','edit_user');
-dispatch_post('/user/edit','edit_user_handler');
+//dispatch('/user/edit','edit_user');
+//dispatch_post('/user/edit','edit_user_handler');
+dispatch('/user/:userid','user_info'); // move to bottom of this list when all other features are completed
 
 
 
