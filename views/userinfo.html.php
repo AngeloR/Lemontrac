@@ -24,6 +24,7 @@
     <?php echo Markdown($user_info['bio']);?>
 
     <div class="clear"></div>
+    <p><h2>Recent Activity</h2></p>
     <ul class="history">
         <?php foreach($log as $i=>$entry): ?>
         <li><?php echo ucfirst($entry['message']); ?></li>

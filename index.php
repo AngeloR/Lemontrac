@@ -10,7 +10,8 @@ $access_levels = array('Admin','User');
 $events = array(
     'NEW_BUG'           => 'created a bug',
     'UPDATED_BUG'       => 'updated a bug',
-    'NEW_NOTE'       => 'added a note',
+    'CLOSED_BUG'        => 'closed a bug',
+    'NEW_NOTE'          => 'added a note',
     'NEW_PROJECT'       => 'created a project',
     'UPDATED_PROJECT'   => 'updated a projects details',
     'REGISTERED_USER'   => 'registered their account'
@@ -66,8 +67,6 @@ function ext_log($type,$id,$time,$message = '') {
     //die($sql);
     db($sql);
 }
-
-
 
 function gravatar($email,$size = '80') {
     return 'http://www.gravatar.com/avatar/'.md5($email).'.jpg?s='.$size;
@@ -319,8 +318,10 @@ function create_bug_handler() {
         $sql .= '"'.$title.'","'.$desc.'",'.$project_id.','.$now.','.$now.','.user('user_id').','.$sev_level.','.user('user_id').')';
 
         if(db($sql)) {
+            $res = db('select bug_id from bugs where user_id = '.$user('user_id').' order by created_time asc limit 0,1');
             $sql = 'update projects set bugs_assigned = bugs_assigned+1 where project_id = '.$project_id;
             db($sql);
+            ext_log('NEW_BUG',$res[0]['bug_id'],$now);
             redirect('/');
         }
         else {
@@ -361,6 +362,7 @@ function update_bug() {
     }
 
     if($pass) {
+        ext_log('UPDATED_BUG',$id,$now);
         ext_notify('Your changes have been saved.');
     }
     else {
@@ -391,6 +393,7 @@ function mark_as_fixed($bugid) {
     $now = time();
     $sql = 'update bugs set fixed = 1, updated_time = '.$now.', updated_by = '.$user['user_id'].' where bug_id = '.$bugid;
     if(db($sql)) {
+        ext_log('CLOSED_BUG',$bugid,$now);
         ext_notify('The bug has been marked as fixed.');
     }
     else {
@@ -449,6 +452,7 @@ function create_project_handler() {
     $sql = 'insert into projects (project_title,project_desc,color,created_time) values ("'.$title.'","'.$desc.'","'.$color.'",'.$now.')';
 
     if(db($sql)) {
+
         ext_notify('Your project has been saved. You can now assign bugs to it.');
     }
     else {
@@ -474,6 +478,7 @@ function edit_project_handler($pjid) {
     if($title != '' && $color != '' && $desc != '') {
         $sql = 'update projects set project_title = "'.$title.'", project_desc="'.$desc.'",color="'.$color.'" where project_id = '.$pjid;
         if(db($sql)) {
+            ext_log('UPDATED_PROJECT',$pjid,time());
             ext_notify('Project details saved successfully.');
             return project_info($pjid);
         }
@@ -506,6 +511,7 @@ function edit_project_handler($pjid) {
 function close_project_handler($pjid) {
     $sql = 'update projects set closed = 1 where project_id = '.$pjid;
     if(db($sql)) {
+        
         ext_notify('The project has been closed.');
     }
     else {
@@ -520,8 +526,6 @@ function user_info($id) {
     $sql2 = 'select * from log where user_id = '.$id.' order by created_time desc limit 0,15';
     $res = db($sql);
     $res2 = db($sql2);
-
-    print_r($res);
 
     set('log',$res2);
     set('user_info',$res[0]);

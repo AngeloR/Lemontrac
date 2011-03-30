@@ -70,7 +70,7 @@ p {
     padding: 4px 9px;
 }
 #content {
-    margin: 70px auto 0px;
+    margin: 70px auto 30px;
     width: 80%;
 }
 #main {
@@ -263,4 +263,7 @@ hr.divider {
 }
 .wrapper ul, .wrapper ol {
     margin-left: 25px;
+}
+.history li{
+    list-style: none;
 }
