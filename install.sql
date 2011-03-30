@@ -1,12 +1,38 @@
 --
+<<<<<<< HEAD
 -- MySQL 5.1.41
 -- Wed, 30 Mar 2011 21:19:45 +0000
+=======
+-- Host: localhost
+-- Generation Time: Mar 29, 2011 at 12:14 AM
+-- Server version: 5.1.41
+-- PHP Version: 5.3.1
+
+SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+
+--
+-- Database: `bugtrack`
+--
+-- DROP DATABASE `bugtrack`;
+CREATE DATABASE `bugtrack` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `bugtrack`;
+
+-- --------------------------------------------------------
+
+>>>>>>> cd852bc65b896982bed07ed03b61cab883cb2c2f
 --
 
 CREATE DATABASE `bugtrack` DEFAULT CHARSET utf8;
 
 USE `bugtrack`;
 
+<<<<<<< HEAD
 CREATE TABLE `bugs` (
    `bug_id` int(11) not null auto_increment,
    `project_id` int(11),
@@ -63,3 +89,14 @@ CREATE TABLE `users` (
    `updated_time` int(11) not null,
    PRIMARY KEY (`user_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=25;
+=======
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+
+-- update v0.1.2
+ALTER TABLE  `log` ADD  `message` VARCHAR( 200 ) NOT NULL AFTER  `update_type`
+ALTER TABLE  `log` ADD  `created_time` INT NOT NULL
+>>>>>>> cd852bc65b896982bed07ed03b61cab883cb2c2f
