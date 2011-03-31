@@ -5,7 +5,9 @@
         <h3>Profile Details</h3>
         <p>
             <b>Member Since: </b><?php echo pretty_date($user_info['created_time']); ?><br>
-           
+            <?php if($user['updated_time'] != null) : ?>
+            <b>Latest Activity: </b><?php echo $user['updated_time']; ?>
+            <?php endif; ?>
         </p>
         <p>
         <?php
