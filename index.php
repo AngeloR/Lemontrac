@@ -181,7 +181,7 @@ function ext_notice_render() {
 function configure() {
     global $config;
     $c = mysql_connect($config['db']['host'],$config['db']['user'],$config['db']['pass']);
-    $d = mysql_select_db('bugtrack',$c);
+    $d = mysql_select_db($config['db']['name'],$c);
 }
 
 function before() {

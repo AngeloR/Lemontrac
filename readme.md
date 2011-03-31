@@ -12,11 +12,7 @@ The following presents the versions of software necessary to run Lemontrac
 
 Tested on: 
 PHP 5.3
-
-MySQL                    |
--------------------------|------
-| protocol_version : 10 
-| version:  5.1.41 
+MySQL 5.x
 
 
 Chrome: 10
@@ -35,4 +31,7 @@ Installing Lemontrac is fairly straight-forward. However, there is no
    `update users set access_level = 0 order by user_id desc limit 1`
 
    Since there is currently no ACL, but it IS something that is planned, users
-   have an "access_level". 0 is the administrative user. 
+   have an "access_level". 0 is the administrative user.
+
+## Bugs? ##
+Find any bugs? Just head over to http://lemontrac.xangelo.ca to report them.

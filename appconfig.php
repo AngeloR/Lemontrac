@@ -8,7 +8,8 @@ return array(
         'host'  => 'localhost',
         'user'  => 'root',
         'pass'  => '',
+        'name'  => 'bugtrack'
     ),
-    'session'   => 'exterm-user'
+    'session'   => 'lemontrac-user'
 );
 ?>
