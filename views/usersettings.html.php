@@ -5,7 +5,7 @@
         <h3>Current Avatar</h3>
         <form action="<?php echo url_for('/user/settings'); ?>" method="post" enctype="multipart/form-data">
         <p>
-            <img src="<?php echo url_for('/user/avatar/'.$user['email'].'/80'); ?>" width="80"><br>
+            <img src="<?php echo url_for('/user/avatar/'.user('email').'/80'); ?>" width="80"><br>
             <input type="file" name="avatar" size="20" style="border: 0px; padding-left: 0px;">
         </p>
         <p>
@@ -20,7 +20,7 @@
         <table class="form">
             <tr>
                 <td style="text-align: right; "><label>Email: </label></td>
-                <td><input type="text" name="email" value="<?php echo $user['email']; ?>"></td>
+                <td><input type="text" name="email" value="<?php echo user('email'); ?>"></td>
             </tr>
             <tr>
                 <td style="text-align: right; "><label>Password: </label></td>

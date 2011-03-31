@@ -9,8 +9,7 @@
         </p>
         <p>
         <?php
-        $current_user = user();
-        if($user['user_id'] == $current_user['user_id']) {
+        if($user_info['user_id'] == user('user_id')) {
             echo '<a href="'.url_for('/user/edit').'" class="button black">Edit Profile</a>&nbsp;&nbsp;&nbsp;';
         }
         ?>
