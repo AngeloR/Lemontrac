@@ -1,6 +1,7 @@
 <?php session_start();
 
 include('lib/limonade.php');
+include('lib/smart_image_resize.php');
 $config = include('appconfig.php');
 
 // current levels of priority
@@ -68,12 +69,37 @@ function ext_log($type,$id,$time,$message = '') {
     db($sql);
 }
 
-function gravatar($email,$size = '80') {
-    return 'http://www.gravatar.com/avatar/'.md5($email).'.jpg?s='.$size;
+function gravatar($hashed_email,$size = '80') {
+    return 'http://www.gravatar.com/avatar/'.$hashed_email.'.jpg?s='.$size;
+}
+
+function avatar($email,$size) {
+    $email = md5($email);
+    if(file_exists('uploads/avatars/'.$email)) {
+        $image = getimagesize('uploads/avatars/'.$email);
+        header('Content-type: '.$image['mime']);
+        switch($image['mime']) {
+            case 'image/png':
+                imagepng(imagecreatefrompng('uploads/avatars/'.$email));
+                break;
+        }
+    }
+    else {
+        header('Content-type: image/jpeg');
+        return file_get_contents(gravatar($email));
+    }
 }
 
 function excerpt($str,$size = 100) {
     return (strlen($str) < $size)?$str:substr($str,0,$size).'...';
+}
+
+function validate($type,$value) {
+    switch($type) {
+        case 'email':
+            return eregi('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$',$value);
+            break;
+    }
 }
 
 function pretty_date($timestamp) {
@@ -227,11 +253,10 @@ function register_handler() {
         ext_error('Sorry, the passwords that you entered do not match.');
     }
     else {
-        $password = sha1('139n9'.$password.'139vnv');
+        $password = ext_hash($password);
         $sql = 'insert into users (username,password,email,created_time,updated_time) values("'.$username.'","'.$password.'","'.$email.'",'.$time.','.$time.')';
         if(db($sql)) {
-
-            
+           
 
             $sql = 'select * from users where username = "'.$username.'" and password= "'.$password.'"';
             $res = db($sql);
@@ -246,6 +271,10 @@ function register_handler() {
     }
 
     return login();
+}
+
+function ext_hash($val) {
+    return sha1('139n9'.$val.'139vnv');
 }
 
 function logout_handler() {
@@ -533,7 +562,54 @@ function user_info($id) {
 }
 
 function user_settings() {
-    return user_info(user('user_id'));
+    set('user',user());
+    return render('usersettings.html.php');
+}
+
+function user_settings_handler() {
+    global $config;
+
+    if(count($_FILES) == 0) {
+        $email = mysql_real_escape_string($_POST['email']);
+        $password = mysql_real_escape_string($_POST['password']);
+        $confirm_password = mysql_real_escape_string($_POST['confirm_password']);
+
+        if($password == $confirm_password) {
+            if(validate('email',$email)) {
+                $sql = 'update users set email = "'.$email.'", password = "'.ext_hash($password).'" where user_id = '.user('user_id');
+                if(db($sql)) {
+
+                    $sql = 'select * from users where user_id = '.user('user_id');
+                    $res = db($sql);
+
+                    $_SESSION[$config['session']] = serialize($res[0]);
+                    ext_notify('Profile has been updated');
+                }
+
+                else {
+                    ext_error('There was a problem updating your data in our database.');
+                }
+            }
+            else {
+                ext_error('The email address entered was not a valid email.');
+            }
+        }
+        else {
+            ext_error('The passwords entered do not match.');
+        }
+
+        return user_settings();
+    }
+    else {
+        //die('<pre>'.print_r($_FILES,true).'</pre>');
+
+        move_uploaded_file($_FILES['avatar']['tmp_name'], 'uploads/avatars/'.md5(user('email')));
+        smart_resize_image('uploads/avatars/'.md5(user('email')),100,100,true,'file');
+
+        ext_notify('Avatar updated!');
+        return user_settings();
+    }
+    
 }
 
 $user = user();
@@ -570,12 +646,13 @@ dispatch('/bug/:bugid', 'bug_info');
 dispatch_post('/bug/:bugid', 'update_bug');
 
 
-
+dispatch('/user/avatar/:email/:size','avatar');
 dispatch('/user/settings','user_settings');
-//dispatch('/user/edit','edit_user');
-//dispatch_post('/user/edit','edit_user_handler');
+dispatch_post('/user/settings','user_settings_handler');
 dispatch('/user/:userid','user_info'); // move to bottom of this list when all other features are completed
 
+
+dispatch('/resource/avatar/:img/:size','avatar_parse');
 
 
 dispatch('/:pjid', 'bug_list');
