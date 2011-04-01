@@ -13,17 +13,21 @@ function gravatar($hashed_email,$size = '80') {
 function avatar($email,$size) {
     $email = md5($email);
     if(file_exists('uploads/avatars/'.$email)) {
-        $image = getimagesize('uploads/avatars/'.$email);
+        //$image = getimagesize('uploads/avatars/'.$email);
+        smart_image_resize('uploads/avatars/'.$email,$size,0,'browser');
+        /*
         header('Content-type: '.$image['mime']);
         switch($image['mime']) {
             case 'image/png':
                 imagepng(imagecreatefrompng('uploads/avatars/'.$email));
                 break;
         }
+         * 
+         */
     }
     else {
         header('Content-type: image/jpeg');
-        return file_get_contents(gravatar($email));
+        return file_get_contents(gravatar($email,$size));
     }
 }
 
@@ -221,7 +225,7 @@ function create_bug_handler() {
         $sql .= '"'.$title.'","'.$desc.'",'.$project_id.','.$now.','.$now.','.user('user_id').','.$sev_level.','.user('user_id').')';
 
         if(db($sql)) {
-            $res = db('select bug_id from bugs where user_id = '.user('user_id').' order by created_time asc limit 0,1');
+            $res = db('select bug_id from bugs where created_by = '.user('user_id').' order by created_time asc limit 0,1');
             $sql = 'update projects set bugs_assigned = bugs_assigned+1 where project_id = '.$project_id;
             db($sql);
             ext_log('NEW_BUG',$res[0]['bug_id'],$now);
@@ -422,7 +426,9 @@ function close_project_handler($pjid) {
     redirect('/');
 }
 
-function user_info($id) {
+function user_info() {
+    $id = params('userid');
+    $id = empty($id)?user('user_id'):params('userid');
     $sql = 'select * from users where user_id = '.$id;
     $sql2 = 'select * from log where user_id = '.$id.' order by created_time desc limit 0,15';
     $res = db($sql);
