@@ -1,75 +1,34 @@
 <?php session_start();
 
 include('lib/limonade.php');
+include('lib/app.php');
+include('lib/smart_image_resize.php');
 $config = include('appconfig.php');
 
-// current levels of priority
-$priority_map = array('Critical','High','Medium','Low');
-$access_levels = array('Admin','User');
 
-$events = array(
-    'NEW_BUG'           => 'created a bug',
-    'UPDATED_BUG'       => 'updated a bug',
-    'CLOSED_BUG'        => 'closed a bug',
-    'NEW_NOTE'          => 'added a note',
-    'NEW_PROJECT'       => 'created a project',
-    'UPDATED_PROJECT'   => 'updated a projects details',
-    'REGISTERED_USER'   => 'registered their account'
-);
+function gravatar($hashed_email,$size = '80') {
+    return 'http://www.gravatar.com/avatar/'.$hashed_email.'.jpg?s='.$size;
+}
 
-function db($sql) {
-    $q = mysql_query($sql) or die(mysql_error());
-
-    if(mysql_num_rows($q) > 0) {
-        $tmp = array();
-        while($r = mysql_fetch_assoc($q)) {
-            $tmp[] = $r;
+function avatar($email,$size) {
+    $email = md5($email);
+    if(file_exists('uploads/avatars/'.$email)) {
+        //$image = getimagesize('uploads/avatars/'.$email);
+        smart_image_resize('uploads/avatars/'.$email,$size,0,'browser');
+        /*
+        header('Content-type: '.$image['mime']);
+        switch($image['mime']) {
+            case 'image/png':
+                imagepng(imagecreatefrompng('uploads/avatars/'.$email));
+                break;
         }
-        return $tmp;
+         * 
+         */
     }
     else {
-        return $q;
+        header('Content-type: image/jpeg');
+        return file_get_contents(gravatar($email,$size));
     }
-}
-
-function ext_log($type,$id,$time,$message = '') {
-    global $events;
-
-    $event_key = array_search($type,array_keys($events));
-    $sql = 'insert into log (user_id,update_type,message';
-    
-    switch($event_key) {
-        case 0:
-            $message = ($message == '')?$events[$type]:$message;
-            $sql = 'insert into log (user_id,update_type,message,bug_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
-            break;
-        case 1:
-            $message = ($message == '')?$events[$type]:$message;
-            $sql = 'insert into log (user_id,update_type,message,bug_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
-            break;
-        case 2:
-            $message = ($message == '')?$events[$type]:$message;
-            $sql = 'insert into log (user_id,update_type,message,bug_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
-            break;
-        case 3:
-            $message = ($message == '')?$events[$type]:$message;
-            $sql = 'insert into log (user_id,update_type,message,project_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
-            break;
-        case 4:
-            $message = ($message == '')?$events[$type]:$message;
-            $sql = 'insert into log (user_id,update_type,message,project_id,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$id.','.$time.')';
-            break;
-        default:
-            $message = ($message == '')?$events[$type]:$message;
-            $sql = 'insert into log (user_id,update_type,message,created_time) values ('.user('user_id').','.$event_key.',"'.$message.'",'.$time.')';
-            break;
-    }
-    //die($sql);
-    db($sql);
-}
-
-function gravatar($email,$size = '80') {
-    return 'http://www.gravatar.com/avatar/'.md5($email).'.jpg?s='.$size;
 }
 
 function excerpt($str,$size = 100) {
@@ -118,64 +77,9 @@ function user() {
             $user[$args[0]] = $args[1];
             $_SESSION[$config['session']] = serialize($user);
         }
-        
+
     }
     return false;
-}
-
-function ext_notify($msg = null) {
-    static $messages;
-
-    if($msg == null) {
-        $s = $messages;
-        $messages = array();
-        return $s;
-    }
-    else {
-        if($messages == null) {
-            $messages = array();
-        }
-
-        $messages[] = $msg;
-    }
-}
-
-function ext_error($msg = null) {
-    static $errors;
-
-    if($msg == null) {
-        $s = $errors;
-        $errors = array();
-        return $s;
-    }
-    else {
-        if($errors == null) {
-            $errors = array();
-        }
-
-        $errors[] = $msg;
-    }
-}
-
-function ext_notice_render() {
-    $errors = ext_error();
-    $messages = ext_notify();
-
-    $tmp = array();
-
-    foreach($messages as $i=>$msg) {
-        $tmp[] = '<div class="good">'.$msg.'</div>';
-    }
-
-    foreach($errors as $i=>$error) {
-        $tmp[] = '<div class="error">'.$error.'</div>';
-    }
-
-    if(count($tmp) < 1) {
-        return '';
-    }
-
-    return '<div class="notices">'.implode("\r\n",$tmp).'</div>';
 }
 
 function configure() {
@@ -200,7 +104,7 @@ function login_handler() {
     $username = mysql_real_escape_string($_POST['username']);
     $password = mysql_real_escape_string($_POST['password']);
 
-    $password = sha1('139n9'.$password.'139vnv');
+    $password = ext_hash($password);
 
     $sql = 'select * from users where username="'.$username.'" and password="'.$password.'"';
 
@@ -227,11 +131,10 @@ function register_handler() {
         ext_error('Sorry, the passwords that you entered do not match.');
     }
     else {
-        $password = sha1('139n9'.$password.'139vnv');
+        $password = ext_hash($password);
         $sql = 'insert into users (username,password,email,created_time,updated_time) values("'.$username.'","'.$password.'","'.$email.'",'.$time.','.$time.')';
         if(db($sql)) {
-
-            
+           
 
             $sql = 'select * from users where username = "'.$username.'" and password= "'.$password.'"';
             $res = db($sql);
@@ -246,6 +149,10 @@ function register_handler() {
     }
 
     return login();
+}
+
+function ext_hash($val) {
+    return sha1('139n9'.$val.'139vnv');
 }
 
 function logout_handler() {
@@ -318,7 +225,7 @@ function create_bug_handler() {
         $sql .= '"'.$title.'","'.$desc.'",'.$project_id.','.$now.','.$now.','.user('user_id').','.$sev_level.','.user('user_id').')';
 
         if(db($sql)) {
-            $res = db('select bug_id from bugs where user_id = '.$user('user_id').' order by created_time asc limit 0,1');
+            $res = db('select bug_id from bugs where created_by = '.user('user_id').' order by created_time asc limit 0,1');
             $sql = 'update projects set bugs_assigned = bugs_assigned+1 where project_id = '.$project_id;
             db($sql);
             ext_log('NEW_BUG',$res[0]['bug_id'],$now);
@@ -337,25 +244,24 @@ function update_bug() {
     $description = mysql_real_escape_string($_POST['desc']);
     $notes = mysql_real_escape_string($_POST['notes']);
     $pass = true;
-    $user = user();
     $now = time();
 
     
 
 
     if($notes != '') {
-        $sql = 'insert into notes (bug_id,note,created_time,created_by) values ('.$id.',"'.$notes.'",'.$now.','.$user['user_id'].')';
+        $sql = 'insert into notes (bug_id,note,created_time,created_by) values ('.$id.',"'.$notes.'",'.$now.','.user('user_id').')';
         if(!db($sql)) {
             $pass = false;
         }
 
-        $sql2 = 'update bugs set updated_time = '.$now.', updated_by = '.$user['user_id'].' where bug_id = '.$id;
+        $sql2 = 'update bugs set updated_time = '.$now.', updated_by = '.user('user_id').' where bug_id = '.$id;
         if(!db($sql2)) {
             $pass = false;
         }
     }
     else {
-        $sql = 'update bugs set severity_level = '.$severity_level.', title="'.$title.'", description = "'.$description.'",updated_time = '.$now.', updated_by='.$user['user_id'].' where bug_id = '.$id;
+        $sql = 'update bugs set severity_level = '.$severity_level.', title="'.$title.'", description = "'.$description.'",updated_time = '.$now.', updated_by='.user('user_id').' where bug_id = '.$id;
         if(!db($sql)) {
             $pass = false;
         }
@@ -389,9 +295,8 @@ function edit_bug($bugid) {
 }
 
 function mark_as_fixed($bugid) {
-    $user = user();
     $now = time();
-    $sql = 'update bugs set fixed = 1, updated_time = '.$now.', updated_by = '.$user['user_id'].' where bug_id = '.$bugid;
+    $sql = 'update bugs set fixed = 1, updated_time = '.$now.', updated_by = '.user('user_id').' where bug_id = '.$bugid;
     if(db($sql)) {
         ext_log('CLOSED_BUG',$bugid,$now);
         ext_notify('The bug has been marked as fixed.');
@@ -521,7 +426,9 @@ function close_project_handler($pjid) {
     redirect('/');
 }
 
-function user_info($id) {
+function user_info() {
+    $id = params('userid');
+    $id = empty($id)?user('user_id'):params('userid');
     $sql = 'select * from users where user_id = '.$id;
     $sql2 = 'select * from log where user_id = '.$id.' order by created_time desc limit 0,15';
     $res = db($sql);
@@ -533,10 +440,64 @@ function user_info($id) {
 }
 
 function user_settings() {
-    return user_info(user('user_id'));
+    return render('usersettings.html.php');
 }
 
-$user = user();
+function user_settings_handler() {
+    global $config;
+
+    if(count($_FILES) == 0) {
+        $email = mysql_real_escape_string($_POST['email']);
+        $password = mysql_real_escape_string($_POST['password']);
+        $confirm_password = mysql_real_escape_string($_POST['confirm_password']);
+
+        if($password == $confirm_password) {
+            if($password == '') {
+                $password = user('password');
+            }
+            else {
+                $password = ext_hash($password);
+            }
+            if(validate('email',$email)) {
+                $sql = 'update users set email = "'.$email.'", password = "'.$password.'" where user_id = '.user('user_id');
+                if(db($sql)) {
+
+                    $sql = 'select * from users where user_id = '.user('user_id');
+                    $res = db($sql);
+
+                    $_SESSION[$config['session']] = serialize($res[0]);
+                    ext_notify('Profile has been updated');
+                }
+
+                else {
+                    ext_error('There was a problem updating your data in our database.');
+                }
+            }
+            else {
+                ext_error('The email address entered was not a valid email.');
+            }
+        }
+        else {
+            ext_error('The passwords entered do not match.');
+        }
+    }
+    else {
+        if(move_uploaded_file($_FILES['avatar']['tmp_name'], 'uploads/avatars/'.md5(user('email')))) {
+            if(smart_resize_image('uploads/avatars/'.md5(user('email')),100,100,true,'file')) {
+                ext_notify('Avatar updated!');
+            }
+            else {
+                ext_error('There was a problem handling your upload.');
+            }
+        }
+        else {
+            ext_error('Not a valid upload.');
+        }
+    }
+
+    return user_settings();
+}
+
 /**
  * Route maps
  *
@@ -552,7 +513,7 @@ dispatch('/logout','logout_handler');
 dispatch('/notes/:bugid', 'notes_for');
 
 dispatch('/project', 'project_list');
-if($user['access_level'] == 0) {
+if(user('access_level') == 0) {
     dispatch('/project/new', 'create_project');
     dispatch_post('/project', 'create_project_handler');
     dispatch('/project/edit/:pjid', 'edit_project');
@@ -570,12 +531,13 @@ dispatch('/bug/:bugid', 'bug_info');
 dispatch_post('/bug/:bugid', 'update_bug');
 
 
-
+dispatch('/user/avatar/:email/:size','avatar');
 dispatch('/user/settings','user_settings');
-//dispatch('/user/edit','edit_user');
-//dispatch_post('/user/edit','edit_user_handler');
+dispatch_post('/user/settings','user_settings_handler');
 dispatch('/user/:userid','user_info'); // move to bottom of this list when all other features are completed
 
+
+dispatch('/resource/avatar/:img/:size','avatar_parse');
 
 
 dispatch('/:pjid', 'bug_list');

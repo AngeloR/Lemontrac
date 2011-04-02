@@ -11,8 +11,7 @@
         </p>
         <p>
         <?php
-        $current_user = user();
-        if($user['user_id'] == $current_user['user_id']) {
+        if($user_info['user_id'] == user('user_id')) {
             echo '<a href="'.url_for('/user/edit').'" class="button black">Edit Profile</a>&nbsp;&nbsp;&nbsp;';
         }
         ?>
@@ -20,7 +19,7 @@
     </div>
 
     <h2>
-        <img src="<?php echo gravatar($user_info['email'],100);?>" align="top"> <?php echo $user_info['username']; ?>
+        <img src="<?php echo url_for('/user/avatar/'.user('email').'/100');?>" align="top"> <?php echo $user_info['username']; ?>
 
     </h2>
     <?php echo Markdown($user_info['bio']);?>
