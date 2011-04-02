@@ -13,17 +13,7 @@ function gravatar($hashed_email,$size = '80') {
 function avatar($email,$size) {
     $email = md5($email);
     if(file_exists('uploads/avatars/'.$email)) {
-        //$image = getimagesize('uploads/avatars/'.$email);
         smart_image_resize('uploads/avatars/'.$email,$size,0,'browser');
-        /*
-        header('Content-type: '.$image['mime']);
-        switch($image['mime']) {
-            case 'image/png':
-                imagepng(imagecreatefrompng('uploads/avatars/'.$email));
-                break;
-        }
-         * 
-         */
     }
     else {
         header('Content-type: image/jpeg');
@@ -166,7 +156,7 @@ function bug_list($pjid) {
     global $priority_map;
     $res = db('select b.*,p.color,u.user_id,u.username,u.email from bugs as b, projects as p, users as u where b.project_id = p.project_id and b.created_by = u.user_id and b.project_id = '.$pjid.' and b.fixed = 0 order by b.updated_time desc');
 
-
+    $_SESSION['state'] = serialize(array('project_id' => $pjid));
     set('priority_map',$priority_map);
     set('bugs',$res);
     return render('buglist.html.php');
@@ -202,6 +192,13 @@ function create_bug() {
     global $priority_map;
 
     $sql = 'select * from projects where closed=0 order by project_title asc';
+
+    $state = unserialize($_SESSION['state']);
+    $pjid = $state['project_id'];
+
+    if(!empty($pjid)) {
+        set('pre_sel',$pjid);
+    }
 
     set('priority_map',$priority_map);
     set('projects',db($sql));
@@ -245,9 +242,6 @@ function update_bug() {
     $notes = mysql_real_escape_string($_POST['notes']);
     $pass = true;
     $now = time();
-
-    
-
 
     if($notes != '') {
         $sql = 'insert into notes (bug_id,note,created_time,created_by) values ('.$id.',"'.$notes.'",'.$now.','.user('user_id').')';

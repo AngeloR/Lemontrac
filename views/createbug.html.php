@@ -24,9 +24,13 @@
                 <td style="text-align: right; "><label>Project: </label></td>
                 <td>
                     <select name="project">
-                    <?php foreach($projects as $i=>$project): ?>
+                    <?php foreach($projects as $i=>$project):
+                        if(!empty($pre_sel) && $pre_sel == $project['project_id']) : ?>
+                        <option value="<?php echo $project['project_id']; ?>" selected="selected"><?php echo $project['project_title']; ?></option>
+                    <?php else: ?>
                         <option value="<?php echo $project['project_id']; ?>"><?php echo $project['project_title']; ?></option>
-                    <?php endforeach; ?>
+                    <?php endif;
+                    endforeach; ?>
                     </select>
                 </td>
             </tr>
