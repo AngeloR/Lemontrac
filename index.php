@@ -76,12 +76,24 @@ function configure() {
     global $config;
     $c = mysql_connect($config['db']['host'],$config['db']['user'],$config['db']['pass']);
     $d = mysql_select_db($config['db']['name'],$c);
+
+    option('base_uri','/lemontrac/');
 }
 
 function before() {
+    global $config;
     layout('layout.php');
-    if(!user() && request_uri() != '/login' && request_uri() != '/register') {
-        redirect('/login');
+    // should install?
+    if(empty($config) && request_uri() != '/install') {
+        redirect('/install');
+    }
+    else if(empty($config) && request_uri() == '/install') {
+        // *sigh* hack
+    }
+    else {
+        if(!user() && request_uri() != '/login' && request_uri() != '/register') {
+            redirect('/login');
+        }
     }
 }
 
@@ -156,15 +168,31 @@ function bug_list($pjid) {
     global $priority_map;
     $res = db('select b.*,p.color,u.user_id,u.username,u.email from bugs as b, projects as p, users as u where b.project_id = p.project_id and b.created_by = u.user_id and b.project_id = '.$pjid.' and b.fixed = 0 order by b.updated_time desc');
 
+    foreach($res as $i=>$bug) {
+        $sql = 'select category_id,category_name from bug_categories where category_id in ('.$bug['category_ids'].')';
+        $res2 = db($sql);
+        $res[$i]['bug_categories'] = $res2;
+    }
+
     $_SESSION['state'] = serialize(array('project_id' => $pjid));
     set('priority_map',$priority_map);
     set('bugs',$res);
     return render('buglist.html.php');
 }
 
+function add_categories($category_str) {
+    
+}
+
 function bug_list_all() {
     global $priority_map;
     $res = db('select b.*,p.color,u.user_id,u.username,u.email from bugs as b, projects as p, users as u where b.project_id = p.project_id and b.created_by = u.user_id and b.fixed = 0 order by b.updated_time desc');
+
+    foreach($res as $i=>$bug) {
+        $sql = 'select category_id,category_name from bug_categories where category_id in ('.$bug['category_ids'].')';
+        $res2 = db($sql);
+        $res[$i]['bug_categories'] = $res2;
+    }
 
 
     set('priority_map',$priority_map);
@@ -175,6 +203,10 @@ function bug_list_all() {
 function bug_info($id) {
     global $priority_map;
     $res = db('select b.*, u.email, u.username, p.color,p.project_title from bugs as b, projects as p, users as u where b.bug_id = '.$id.' and b.project_id = p.project_id and b.created_by = u.user_id');
+    $res2 = db('select category_name from bug_categories where category_id in ('.$res[0]['category_ids'].')');
+    foreach($res2 as $i=>$category) {
+        $res[0]['bug_categories'][] = $category['category_name'];
+    }
     $notes = notes_for($res[0]['bug_id']);
     if(count($res) == 1) {
         set('priority_map',$priority_map);
@@ -492,6 +524,26 @@ function user_settings_handler() {
     return user_settings();
 }
 
+function install() {
+    return render('install.html.php');
+}
+
+function install_handler() {
+    $db = array(
+        'host' => $_POST['db_host'],
+        'user' => $_POST['db_user'],
+        'pass' => $_POST['db_pass'],
+        'name' => $_POST['db_name'],
+    );
+
+    $user = array(
+        'username' => $_POST['username'],
+        'password' => $_POST['password'],
+        'confirm_password' => $_POST['confirm_password'],
+        'email' => $_POST['email']
+    );
+}
+
 /**
  * Route maps
  *
@@ -533,6 +585,11 @@ dispatch('/user/:userid','user_info'); // move to bottom of this list when all o
 
 dispatch('/resource/avatar/:img/:size','avatar_parse');
 
+dispatch('/install','install');
+dispatch_post('/install','install_handler');
+
+dispatch('/resource/static/**','static_resource');
+dispatch('/resource/avatar/:img/:size','avatar_parse');
 
 dispatch('/:pjid', 'bug_list');
 run();

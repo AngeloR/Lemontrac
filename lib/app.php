@@ -126,4 +126,11 @@ function ext_notice_render() {
 
     return '<div class="notices">'.implode("\r\n",$tmp).'</div>';
 }
+
+function static_resource($path_to_file) {
+    if(file_exists($path_to_file)) {
+        header('Content-type: '.file_mime_content_type($path_to_file));
+        echo file_get_contents($path_to_file);
+    }
+}
 ?>

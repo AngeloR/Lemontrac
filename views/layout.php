@@ -3,8 +3,8 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>Lemontrac - Bug tracker</title>
-	<link rel="stylesheet" href="css/style.css" type="text/css" media="screen">
-        <link rel="icon" type="image/ico" href="favicon.ico">
+	<link rel="stylesheet" href="<?php echo url_for('/resource/static/css/style.css'); ?>" type="text/css" media="screen">
+    <link rel="icon" type="image/ico" href="<?php echo url_for('/resource/static/favicon.ico'); ?>">
 </head>
 <body>
   <div id="header">
@@ -25,13 +25,15 @@
 
   <div id="content">
       
-    <?php echo error_notices_render();?>
-      <div id="action-buttons">
-        <a href="<?php echo url_for('/bug/new'); ?>" class="button blue">Create A Bug</a>
-        <?php if($user['access_level'] == 0) : ?>
-        <a href="<?php echo url_for('/project/new'); ?>" class="button blue">Create A Project</a>
-        <?php endif; ?>
-      </div>
+    <?php if(user()): ?>
+          <div id="action-buttons">
+            <a href="<?php echo url_for('/bug/new'); ?>" class="button blue">Create A Bug</a>
+            <?php if($user['access_level'] == 0) : ?>
+            <a href="<?php echo url_for('/project/new'); ?>" class="button blue">Create A Project</a>
+            <?php endif; ?>
+          </div>
+      <?php endif; ?>
+      
     
     <div id="main">
       <?php  echo ext_notice_render();  echo $content;?>
@@ -40,5 +42,5 @@
 
 </body>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
-<script type="text/javascript" src="./js/init.js"></script>
+<script type="text/javascript" src="<?php echo url_for('/resource/static/js/init.js'); ?>"></script>
 </html>

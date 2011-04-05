@@ -5,15 +5,15 @@
         <form action="<?php echo url_for('/login'); ?>" method="post">
             <table class="form">
                 <tr>
-                    <td style="text-align: right;"><label>Username: </label></td>
+                    <th><label>Username: </label></th>
                     <td><input type="text" name="username" id="username"></td>
                 </tr>
                 <tr>
-                    <td style="text-align: right;"><label>Password: </label></td>
+                    <th><label>Password: </label></th>
                     <td><input type="password" name="password" id="password"></td>
                 </tr>
                 <tr>
-                    <td colspan="2" style="text-align: right;"><button type="submit" class="button green">Log In</button></td>
+                    <th colspan="2"><button type="submit" class="button green">Log In</button></th>
                 </tr>
             </table>
         </form>
@@ -34,23 +34,23 @@
     <form action="<?php echo url_for('/register'); ?>" method="post">
         <table class="form">
             <tr>
-                <td style="text-align: right;"><label>Username: </label></td>
+                <th><label>Username: </label></th>
                 <td><input type="text" name="username" id="username"></td>
             </tr>
             <tr>
-                <td style="text-align: right;"><label>Password: </label></td>
+                <th><label>Password: </label></th>
                 <td><input type="password" name="password" id="password"></td>
             </tr>
             <tr>
-                <td style="text-align: right;"><label>Confirm Password: </label></td>
+                <th><label>Confirm Password: </label></th>
                 <td><input type="password" name="conf_password" id="conf_password"></td>
             </tr>
             <tr>
-                <td style="text-align: right;"><label>Email: </label></td>
+                <th><label>Email: </label></th>
                 <td><input type="text" name="email" id="email"></td>
             </tr>
             <tr>
-                <td colspan="2" style="text-align: right;"><button type="submit" class="button blue">Create Account</button></td>
+                <th colspan="2"><button type="submit" class="button blue">Create Account</button></th>
             </tr>
         </table>        
     </form>

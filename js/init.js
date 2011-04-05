@@ -29,3 +29,19 @@ if($('.notices').length > 0) {
         }
     });
 }
+
+if(document.getElementById('password') && document.getElementById('confirm_password')) {
+    var p = document.getElementById('password')
+        , confirm_p = document.getElementById('confirm_password');
+
+    $('#confirm_password').blur(function(e){
+        if(p.value === confirm_p.value && p.value !== '') {
+            p.setAttribute('class','good');
+            confirm_p.setAttribute('class','good');
+        }
+        else {
+            p.setAttribute('class','error');
+            confirm_p.setAttribute('class','error');
+        }
+    });
+}

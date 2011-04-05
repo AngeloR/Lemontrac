@@ -7,10 +7,11 @@
         <p><b>Severity Level: </b> <?php echo $priority_map[$bug['severity_level']]; ?><br>
             <b>Created On: </b><?php echo pretty_date($bug['created_time']); ?><br>
             <b>Last Updated: </b><?php echo pretty_date($bug['updated_time']); ?><br>
-            <b>Project: </b><?php echo $bug['project_title']; ?>
+            <b>Project: </b><?php echo $bug['project_title']; ?><br>
+            <b>Categories: </b><?php echo implode(', ',$bug['bug_categories']); ?>
         </p>
         <p>
-            <img src="<?php echo gravatar($bug['email'],16); ?>" align="top"> <a href="<?php echo url_for('/user/'.$bug['user_id']); ?>"><?php echo $bug['username']; ?></a>
+            <img src="<?php echo url_for('/user/avatar/'.$bug['email'].'/16'); ?>" align="top"> <a href="<?php echo url_for('/user/'.$bug['user_id']); ?>"><?php echo $bug['username']; ?></a>
             created this bug.
         </p>
         <p style="float: right; ">
@@ -41,7 +42,7 @@
     <?php foreach($notes as $id=>$note) :?>
     <div class="note">
         <span class="author">
-            <img src="<?php echo gravatar($note['email'],50); ?>" align="top">
+            <img src="<?php echo url_for('/user/avatar/'.$note['email'].'/50'); ?>" align="top">
             <a href="<?php echo url_for('/user/'.$note['added_by']);?>"><?php echo $note['username'];?></a>
         </span>
         <div class="note-body"><?php echo $note['note']; ?></div>

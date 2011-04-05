@@ -7,7 +7,7 @@ return array(
     'db'        => array(
         'host'  => 'localhost',
         'user'  => 'root',
-        'pass'  => '',
+        'pass'  => 'root',
         'name'  => 'bugtrack'
     ),
     'session'   => 'lemontrac-user'

@@ -207,6 +207,10 @@ textarea {
     font-size: 15px;
     color: #777;
 }
+.form th {
+    text-align: right;
+    padding-right: 5px;
+}
 .form input,.form textarea {
     display: inline-block;
     font-size: 14px;
@@ -266,4 +270,18 @@ hr.divider {
 }
 .history li{
     list-style: none;
+}
+.bug-categories {
+    padding-bottom: 0px;
+    padding-top: 4px
+}
+.bug-categories span {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    font-size: 10px;
+    padding: 3px 8px;
+    margin: 4px 3px 0px;
+    background-color: #eee;
+    border: solid 1px #ccc;
 }

@@ -25,6 +25,14 @@
                     last updated <?php echo pretty_date($bug['updated_time']); ?>
                 </td>
             </tr>
+            <?php if(count($bug['bug_categories']) > 0): ?>
+            <tr>
+                <td></td>
+                <td colspan="2" class="bug-categories">
+                    <?php foreach($bug['bug_categories'] as $i=>$category): ?><span><?php echo $category['category_name']; ?></span><?php endforeach; ?>
+                </td>
+            </tr>
+            <?php endif; ?>
         </table>
     </li>
     <?php endforeach; ?>
