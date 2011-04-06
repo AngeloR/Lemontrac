@@ -3,7 +3,7 @@
 include('lib/limonade.php');
 include('lib/app.php');
 include('lib/smart_image_resize.php');
-$config = include('appconfig.php');
+$config = parse_ini_file('appconfig.ini',true);
 
 
 function gravatar($hashed_email,$size = '80') {
@@ -50,22 +50,22 @@ function pretty_date($timestamp) {
 
 function user() {
     global $config;
-    if(array_key_exists($config['session'],$_SESSION)) {
+    if(array_key_exists($config['options']['session'],$_SESSION)) {
         $args = func_get_args();
 
         if($args[1] == null) {
             if($args[0] == null) {
-                return unserialize($_SESSION[$config['session']]);
+                return unserialize($_SESSION[$config['options']['session']]);
             }
             else {
-                $user = unserialize($_SESSION[$config['session']]);
+                $user = unserialize($_SESSION[$config['options']['session']]);
                 return $user[$args[0]];
             }
         }
         else {
-            $user = unserialize($_SESSION[$config['session']]);
+            $user = unserialize($_SESSION[$config['options']['session']]);
             $user[$args[0]] = $args[1];
-            $_SESSION[$config['session']] = serialize($user);
+            $_SESSION[$config['options']['session']] = serialize($user);
         }
 
     }
@@ -77,21 +77,16 @@ function configure() {
     $c = mysql_connect($config['db']['host'],$config['db']['user'],$config['db']['pass']);
     $d = mysql_select_db($config['db']['name'],$c);
 
-    option('base_uri','/lemontrac/');
+    //option('base_uri','/Lemontrac/');
 }
 
 function before() {
     global $config;
-    layout('layout.php');
-    // should install?
-    if(empty($config) && request_uri() != '/install') {
-        redirect('/install');
-    }
-    else if(empty($config) && request_uri() == '/install') {
-        // *sigh* hack
-    }
-    else {
-        if(!user() && request_uri() != '/login' && request_uri() != '/register') {
+
+    if(!strpos(request_uri(),'resource/static')) {
+        layout('layout.php');
+        // should install?
+        if(!user() && request_uri() != '/login' && request_uri() != '/register' && request_uri() != '/install') {
             redirect('/login');
         }
     }
@@ -528,20 +523,51 @@ function install() {
     return render('install.html.php');
 }
 
-function install_handler() {
-    $db = array(
-        'host' => $_POST['db_host'],
-        'user' => $_POST['db_user'],
-        'pass' => $_POST['db_pass'],
-        'name' => $_POST['db_name'],
-    );
+function is_empty($val) {
+    $pass = false;
+    if(is_array($val)) {
+        foreach($val as $k=>$v) {
+            if(is_empty($v)) {
+                $pass = true;
+            }
+        }
+        return $pass;
+    }
+    else {
+        return empty($val);
+    }
+}
 
-    $user = array(
-        'username' => $_POST['username'],
-        'password' => $_POST['password'],
-        'confirm_password' => $_POST['confirm_password'],
-        'email' => $_POST['email']
-    );
+function install_handler() {
+    global $config;
+    
+    $fail = false;
+
+    if(db('CREATE DATABASE `'.$config['db']['name'].'` DEFAULT CHARSET utf8')) {
+        if(db('USE '.$config['db']['name'])) {
+            $templine = '';
+            $lines = file($filename);
+            foreach($lines as $line_num => $line) {
+                if(substr($line, 0, 2) != '--' && $line != '') {
+                    $templine .= $line;
+                    if(substr(trim($line), -1, 1) == ';') {
+                        if(!db($templine)) {
+                            $fail = true;
+                        }
+                        $templine = '';
+                    }
+                }
+            }
+        }
+    }
+
+    if($fail) {
+        ext_error('There was a problem installing Lemontrac. Please ensure that install.sql is present.');
+        return install();
+    }
+    else {
+        redirect('/');
+    }
 }
 
 /**

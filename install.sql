@@ -3,10 +3,6 @@
 -- Wed, 30 Mar 2011 21:38:01 +0000
 --
 
-CREATE DATABASE `bugtrack` DEFAULT CHARSET utf8;
-
-USE `bugtrack`;
-
 CREATE TABLE `bugs` (
    `bug_id` int(11) not null auto_increment,
    `project_id` int(11),
